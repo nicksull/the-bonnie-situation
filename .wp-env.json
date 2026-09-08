@@ -1,0 +1,14 @@
+{
+	"plugins": [
+		"https://downloads.wordpress.org/plugin/contact-form-7.zip",
+		".",
+		"../bonnie-pro"
+	],
+	"phpVersion": "8.1",
+	"config": {
+		"WP_DEBUG": true,
+		"WP_DEBUG_LOG": true,
+		"WP_DEBUG_DISPLAY": false,
+		"BONNIE_PRO_DEV_UNLOCK": true
+	}
+}

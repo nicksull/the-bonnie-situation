@@ -1,0 +1,20 @@
+# Local Claude Code state
+.claude/settings.local.json
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Dependencies (the built /build artifact IS committed for distribution)
+/vendor/
+/node_modules/
+composer.lock
+
+# WP / PHP tooling caches
+.phpunit.result.cache
+/.phpcs.cache
+
+# Distribution artifact (built by wp-scripts plugin-zip)
+/the-bonnie-situation.zip
