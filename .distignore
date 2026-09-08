@@ -1,0 +1,45 @@
+# Files excluded from the distributed plugin ZIP (wp-scripts plugin-zip).
+# The compiled build/ directory IS shipped. The src/ that produces it, and the
+# build tooling, live in the public repository linked in readme.txt.
+
+# VCS / project meta
+.git
+.gitignore
+.distignore
+.github
+
+# Dependencies & build tooling
+node_modules
+package.json
+package-lock.json
+composer.json
+composer.lock
+vendor
+
+# Local dev environment
+.wp-env.json
+.wp-env.override.json
+
+# Source (compiled into build/, which is shipped) + throwaway dev files
+src
+_smoke.php
+
+# Developer docs & AI assistant state
+docs
+CLAUDE.md
+.claude
+
+# Tooling caches / OS cruft
+.phpcs.cache
+.phpunit.result.cache
+phpcs.xml
+phpcs.xml.dist
+phpunit.xml
+phpunit.xml.dist
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Build artefacts (never bundle a previous ZIP inside the new one)
+*.zip
