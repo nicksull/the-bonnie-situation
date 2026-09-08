@@ -1,0 +1,16 @@
+{
+  "name": "the-bonnie-situation",
+  "private": true,
+  "version": "1.0.0",
+  "description": "DataViews-based admin for The Bonnie Situation plugin.",
+  "scripts": {
+    "build": "wp-scripts build src/index.js src/settings.js",
+    "start": "wp-scripts start src/index.js src/settings.js",
+    "plugin-zip": "wp-scripts plugin-zip"
+  },
+  "devDependencies": {
+    "@wordpress/dataviews": "^4.0.0",
+    "@wordpress/env": "^10.39.0",
+    "@wordpress/scripts": "^30.0.0"
+  }
+}

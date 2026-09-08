@@ -1,0 +1,55 @@
+name: Deploy to WordPress.org
+
+# Publishes a release to the WordPress.org SVN repo (trunk + a version tag).
+#
+# Fires when you publish a GitHub Release. The release/tag name should match
+# the version in readme.txt (Stable tag) and the plugin header (e.g. 1.0.0).
+#
+# Requires two repository secrets (Settings -> Secrets and variables ->
+# Actions), added AFTER the plugin is approved and its SVN repo exists:
+#   SVN_USERNAME - your WordPress.org username
+#   SVN_PASSWORD - your WordPress.org account password
+#
+# Files shipped to SVN are filtered by .distignore, so dev files (.github,
+# src, node_modules, .wp-env.json, CLAUDE.md, .claude, docs, etc.) are excluded.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to WordPress.org SVN
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed to attach the built zip to the GitHub release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Build the admin bundles
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy to WordPress.org
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        with:
+          generate-zip: true
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: the-bonnie-situation
+
+      - name: Attach the built zip to the GitHub release
+        uses: softprops/action-gh-release@v2
+        if: github.event_name == 'release'
+        with:
+          files: ${{ github.workspace }}/the-bonnie-situation.zip
