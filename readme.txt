@@ -43,7 +43,7 @@ This plugin is fully functional on its own: it captures submissions and enforces
 == Installation ==
 
 1. Install and activate **Contact Form 7** (Bonnie is an add-on for it).
-2. Upload the `bonnie` folder to `/wp-content/plugins/`, or install through the Plugins screen.
+2. Upload the `the-bonnie-situation` folder to `/wp-content/plugins/`, or install through the Plugins screen.
 3. Activate Bonnie through the **Plugins** screen.
 4. Visit **Bonnie → Settings** to choose your retention policy. Submissions are captured automatically from then on.
 
@@ -67,7 +67,7 @@ Retention runs daily via WP-Cron. On sites with little traffic, trigger `wp-cron
 
 == Screenshots ==
 
-1. Submissions list with status views, filters and bulk actions.
+1. Submissions list with status views, search and filtering.
 2. Single submission detail view.
 3. Privacy & Retention settings.
 
