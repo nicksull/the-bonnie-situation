@@ -8,7 +8,7 @@
  */
 
 import apiFetch from '@wordpress/api-fetch';
-import { createRoot, render, useState } from '@wordpress/element';
+import { createRoot, Fragment, render, useState } from '@wordpress/element';
 import {
 	Card,
 	CardBody,
@@ -37,7 +37,7 @@ const PRO_FEATURES = [
 	__( 'Per-form retention and capture overrides', 'the-bonnie-situation' ),
 	__( 'Address book of deduplicated contacts', 'the-bonnie-situation' ),
 	__( 'IP anonymisation', 'the-bonnie-situation' ),
-	__( 'Encryption at rest', 'the-bonnie-situation' ),
+	__( 'Encryption at rest, with the key kept out of the database', 'the-bonnie-situation' ),
 	__( 'WP-CLI purge command', 'the-bonnie-situation' ),
 ];
 
@@ -145,6 +145,15 @@ function SettingsApp() {
 	 */
 	const showUpsell = applyFilters( 'bonnie.settings.showUpsell', true );
 
+	/**
+	 * Extra cards rendered below the Save button. For add-on sections that are
+	 * not part of the settings form (they save nothing to /bonnie/v1/settings).
+	 *
+	 * @param {Array}  cards Elements to render.
+	 * @param {Object} api   `{ Section }` — the card wrapper the core sections use.
+	 */
+	const extraCards = applyFilters( 'bonnie.settings.cards', [], { Section } );
+
 	return (
 		<div style={ { maxWidth: 820 } }>
 			{ notice ? (
@@ -196,6 +205,14 @@ function SettingsApp() {
 			<Button variant="primary" isBusy={ saving } disabled={ saving } onClick={ save }>
 				{ __( 'Save changes', 'the-bonnie-situation' ) }
 			</Button>
+
+			{ extraCards.length ? (
+				<div style={ { marginTop: 24 } }>
+					{ extraCards.map( ( card, i ) => (
+						<Fragment key={ i }>{ card }</Fragment>
+					) ) }
+				</div>
+			) : null }
 
 			{ showUpsell ? (
 				<Card style={ { marginTop: 24 } }>

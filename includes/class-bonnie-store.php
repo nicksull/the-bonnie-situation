@@ -60,6 +60,21 @@ class Bonnie_Store {
 	const OPTION_DB_VERSION = 'bonnie_db_version';
 
 	/**
+	 * Prefix an add-on puts on values it stores encrypted. Anything still
+	 * carrying it after the read filters ran is masked rather than shown raw.
+	 *
+	 * @var string
+	 */
+	const ENCRYPTED_PREFIX = 'bnx1:';
+
+	/**
+	 * Submission columns that may hold encrypted values.
+	 *
+	 * @var string[]
+	 */
+	const ENCRYPTABLE_COLUMNS = array( 'subject', 'from_name', 'from_email', 'user_agent', 'referer_url' );
+
+	/**
 	 * Fully-qualified name for one of the plugin's tables.
 	 *
 	 * Public so add-ons can address the shared tables without re-deriving the
@@ -199,6 +214,7 @@ class Bonnie_Store {
 			'subject'       => (string) $submission['subject'],
 			'from_name'     => (string) $submission['from_name'],
 			'from_email'    => (string) $submission['from_email'],
+			'email_hash'    => isset( $submission['email_hash'] ) ? (string) $submission['email_hash'] : '',
 			'remote_ip'     => $submission['remote_ip'],   // packed binary or null.
 			'user_agent'    => $submission['user_agent'],
 			'referer_url'   => $submission['referer_url'],
@@ -206,7 +222,7 @@ class Bonnie_Store {
 			'created_at'    => (string) $submission['created_at'],
 		);
 
-		$formats = array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
+		$formats = array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		$ok = $wpdb->insert( self::table( 'submissions' ), $data, $formats );
@@ -333,7 +349,51 @@ class Bonnie_Store {
 		 * @param object $row     Submission row.
 		 * @param string $context 'list' | 'single' | 'export'.
 		 */
-		return apply_filters( 'bonnie_read_submission', $row, $context );
+		$row = apply_filters( 'bonnie_read_submission', $row, $context );
+
+		foreach ( self::ENCRYPTABLE_COLUMNS as $column ) {
+			if ( isset( $row->$column ) ) {
+				$row->$column = self::mask_encrypted( $row->$column );
+			}
+		}
+
+		return $row;
+	}
+
+	/**
+	 * Replace a value that is still encrypted (no add-on decrypted it) with a
+	 * readable placeholder, so ciphertext is never shown or exported raw.
+	 *
+	 * @since  1.1.0
+	 * @param  mixed $value Stored value.
+	 * @return mixed
+	 */
+	public static function mask_encrypted( $value ) {
+		if ( is_string( $value ) && 0 === strpos( $value, self::ENCRYPTED_PREFIX ) ) {
+			return __( '[Encrypted — needs Bonnie Pro and its encryption key]', 'the-bonnie-situation' );
+		}
+		return $value;
+	}
+
+	/**
+	 * Keyed hash of an email for exact lookups against the email_hash column.
+	 * Empty (no lookup by hash) unless an add-on that stores encrypted emails
+	 * supplies one.
+	 *
+	 * @since  1.1.0
+	 * @param  string $email Email address.
+	 * @return string
+	 */
+	public static function email_hash( $email ) {
+		/**
+		 * Filter the keyed hash used to find submissions by email when the
+		 * from_email column is encrypted.
+		 *
+		 * @since 1.1.0
+		 * @param string $hash  Hash ('' = no hash lookup).
+		 * @param string $email Email address being looked up.
+		 */
+		return (string) apply_filters( 'bonnie_email_hash', '', (string) $email );
 	}
 
 	/**
@@ -395,12 +455,17 @@ class Bonnie_Store {
 		}
 
 		if ( ! empty( $args['search'] ) ) {
-			$like     = '%' . $wpdb->esc_like( $args['search'] ) . '%';
-			$where[]  = "(s.from_email LIKE %s OR s.from_name LIKE %s OR s.subject LIKE %s OR s.id IN (SELECT submission_id FROM `{$meta}` WHERE meta_value LIKE %s))";
-			$params[] = $like;
-			$params[] = $like;
-			$params[] = $like;
-			$params[] = $like;
+			$like  = '%' . $wpdb->esc_like( $args['search'] ) . '%';
+			$terms = "s.from_email LIKE %s OR s.from_name LIKE %s OR s.subject LIKE %s OR s.id IN (SELECT submission_id FROM `{$meta}` WHERE meta_value LIKE %s)";
+			array_push( $params, $like, $like, $like, $like );
+
+			// Encrypted rows can't be LIKE-matched; an exact email still finds them.
+			$hash = self::email_hash( trim( $args['search'] ) );
+			if ( '' !== $hash ) {
+				$terms   .= ' OR s.email_hash = %s';
+				$params[] = $hash;
+			}
+			$where[] = "({$terms})";
 		}
 
 		$where_sql = $where ? ( 'WHERE ' . implode( ' AND ', $where ) ) : '';
@@ -447,7 +512,15 @@ class Bonnie_Store {
 		 * @param object[] $rows Meta rows with meta_key and meta_value.
 		 * @param int      $id   Submission id.
 		 */
-		return apply_filters( 'bonnie_read_submission_meta', $rows, (int) $id );
+		$rows = apply_filters( 'bonnie_read_submission_meta', $rows, (int) $id );
+
+		foreach ( (array) $rows as $meta_row ) {
+			if ( isset( $meta_row->meta_value ) ) {
+				$meta_row->meta_value = self::mask_encrypted( $meta_row->meta_value );
+			}
+		}
+
+		return $rows;
 	}
 
 	/**
@@ -602,8 +675,10 @@ class Bonnie_Store {
 			'intval',
 			$wpdb->get_col(
 				$wpdb->prepare(
-					"SELECT id FROM `{$table}` WHERE from_email = %s ORDER BY id ASC LIMIT %d OFFSET %d",
+					"SELECT id FROM `{$table}` WHERE from_email = %s OR ( %s <> '' AND email_hash = %s ) ORDER BY id ASC LIMIT %d OFFSET %d",
 					$email,
+					self::email_hash( $email ),
+					self::email_hash( $email ),
 					(int) $limit,
 					(int) $offset
 				)

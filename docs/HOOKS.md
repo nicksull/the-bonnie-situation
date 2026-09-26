@@ -57,6 +57,13 @@ through these. Pair them with the write-path filters for **encryption-at-rest**.
 |---|---|---|---|
 | `bonnie_read_submission` | filter | `object $row, string $context` | Transform a submission row on the way out. `$context`: `list` \| `single`. |
 | `bonnie_read_submission_meta` | filter | `object[] $rows, int $id` | Transform meta rows (`meta_key`, `meta_value`) on the way out. |
+| `bonnie_email_hash` | filter | `string $hash, string $email` | Keyed hash for exact-email lookups (list search, GDPR export/erase) against the `email_hash` column, whose value the add-on sets in `bonnie_before_store`. `''` = no hash lookup. |
+
+Encrypted values use the prefix `Bonnie_Store::ENCRYPTED_PREFIX` (`bnx1:`) and
+may appear in `Bonnie_Store::ENCRYPTABLE_COLUMNS` and meta values (all TEXT
+since 1.1.0). Anything still carrying the prefix after the read filters is
+masked (`Bonnie_Store::mask_encrypted()`), so ciphertext is never displayed or
+exported raw, e.g. if the add-on is removed while data is encrypted.
 
 ## Delete path
 
@@ -112,6 +119,7 @@ script that depends on `wp-hooks` on the relevant Bonnie admin screen.
 | `bonnie.settings.privacyControls` | `Array controls, api` | Controls appended to the Privacy card. `api` = `{ settings, set, on, str, toggle, number, policy }`. |
 | `bonnie.settings.retentionPolicyOptions` | `Array options` | Retention policy radio options (free: retain, delete). |
 | `bonnie.settings.retentionControls` | `Array controls, api` | Controls appended to the Retention card. |
+| `bonnie.settings.cards` | `Array cards, { Section }` | Extra cards rendered below the Save button, for add-on sections that aren't settings (e.g. Pro's feedback form). Wrap each in the passed `Section` for consistent styling. |
 | `bonnie.settings.showUpsell` | `boolean show` | Whether the free build shows the "Bonnie Pro" info card. Pro filters this off. |
 
 ---
@@ -122,5 +130,5 @@ script that depends on `wp-hooks` on the relevant Bonnie admin screen.
   global delete-only auto-purge · IP-off default · WP Tools Export/Erase
   (subject-access).
 - **Pro (in `bonnie-pro`):** bulk delete · CSV/JSON export · trash + hard-cap ·
-  per-form overrides · address book · IP anonymisation · encryption-at-rest ·
-  WP-CLI.
+  per-form overrides · address book · IP anonymisation · WP-CLI. Encryption at
+  rest (via the write/read seams above).
