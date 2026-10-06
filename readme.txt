@@ -98,6 +98,8 @@ fully functional without it.
 * Database update: name, email, subject and user-agent columns become TEXT, and a new `email_hash` column supports exact-email lookups, so add-ons can store submissions encrypted. Runs automatically on update.
 * Add the `bonnie_email_hash` filter; search and the WordPress personal-data export/erase tools find encrypted submissions by exact email.
 * Encrypted values are shown as "[Encrypted]" rather than raw if the add-on that can decrypt them isn't active.
+* Add the `bonnie_submission_display_ip` filter so add-ons can annotate the IP shown on a submission's detail view (display only; the stored value is unchanged).
+* Upgrade links to Bonnie Pro now carry campaign tags.
 
 = 1.0.0 =
 * Initial release: capture Contact Form 7 submissions to a custom table, a DataViews submissions admin (search/sort/filter with a per-submission detail view and permanent delete), delete-only retention with a scheduled daily purge and audit log, IP-storage suppression, and WordPress Personal Data export/erase integration.

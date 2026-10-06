@@ -352,7 +352,7 @@ class Bonnie_Submissions_Page {
 			 * Filters the IP shown on the submission detail view. Display only;
 			 * the stored value is unchanged.
 			 *
-			 * @since 1.1.1
+			 * @since 1.1.0
 			 * @param string $ip  Stored IP as a string.
 			 * @param object $sub The submission row being viewed.
 			 */
