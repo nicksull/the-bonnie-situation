@@ -83,7 +83,15 @@ function bonnie_capability() {
  * @return string
  */
 function bonnie_upgrade_url() {
-	return apply_filters( 'bonnie_upgrade_url', 'https://beforebonnie.com/pricing' );
+	$url = add_query_arg(
+		array(
+			'utm_source'   => 'the-bonnie-situation',
+			'utm_medium'   => 'plugin-settings',
+			'utm_campaign' => 'upgrade',
+		),
+		'https://beforebonnie.com/pricing'
+	);
+	return apply_filters( 'bonnie_upgrade_url', $url );
 }
 
 /**
