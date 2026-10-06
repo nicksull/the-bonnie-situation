@@ -1,8 +1,9 @@
 # Bonnie — CF7 submissions add-on (WordPress plugin)
 
 Free plugin, ships under Red Pocket. Pro companion: `~/repos/bonnie-pro` —
-wp-env mounts it alongside this repo (see `.wp-env.json`, which also sets
-`BONNIE_PRO_DEV_UNLOCK` so Pro features unlock without a licence locally).
+wp-env mounts it alongside this repo (see `.wp-env.json`, which also maps
+Pro's `dev/mu-plugins/` in as mu-plugins so Pro features unlock
+without a licence locally).
 
 ## Free/Pro boundary
 This repo ships **only** the free tier and carries **no** Pro code — there is no

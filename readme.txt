@@ -4,7 +4,7 @@ Tags: contact form 7, cf7, gdpr, data retention, privacy
 Requires at least: 6.7
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,7 +30,7 @@ IP storage is off, spam is discarded, user agent and referrer are off, and only 
 
 = Bonnie Pro =
 
-This plugin is fully functional on its own: it captures submissions and enforces delete-only retention. [Bonnie Pro](https://beforebonnie.com/pro/), a separate add-on distributed off WordPress.org, adds:
+This plugin is fully functional on its own: it captures submissions and enforces delete-only retention. [Bonnie Pro](https://beforebonnie.com/pricing?utm_source=wordpress.org&utm_medium=plugin-listing&utm_campaign=upgrade), a separate add-on distributed off WordPress.org, adds:
 
 * **CSV / JSON export** of the current view or selected rows.
 * **Address book** of deduplicated contacts, with click-through to each contact's submissions.
@@ -38,6 +38,7 @@ This plugin is fully functional on its own: it captures submissions and enforces
 * **Bulk delete** across selected submissions.
 * **Per-form overrides** — each form sets its own policy, window, IP rule and field mapping on the Contact Form 7 editor.
 * **IP anonymisation** — store a masked address (last octet / last 80 bits) instead of the full IP.
+* **Encryption at rest** — names, emails, subjects and form fields encrypted in the database, with the key kept in wp-config.php.
 * **WP-CLI** — `wp bonnie purge` runs the retention sweep on demand.
 
 == Installation ==
@@ -92,10 +93,21 @@ fully functional without it.
 
 == Changelog ==
 
+= 1.1.0 =
+* Add the `bonnie.settings.cards` JS filter so add-ons can add their own cards to the settings screen.
+* Database update: name, email, subject and user-agent columns become TEXT, and a new `email_hash` column supports exact-email lookups, so add-ons can store submissions encrypted. Runs automatically on update.
+* Add the `bonnie_email_hash` filter; search and the WordPress personal-data export/erase tools find encrypted submissions by exact email.
+* Encrypted values are shown as "[Encrypted]" rather than raw if the add-on that can decrypt them isn't active.
+* Add the `bonnie_submission_display_ip` filter so add-ons can annotate the IP shown on a submission's detail view (display only; the stored value is unchanged).
+* Upgrade links to Bonnie Pro now carry campaign tags.
+
 = 1.0.0 =
 * Initial release: capture Contact Form 7 submissions to a custom table, a DataViews submissions admin (search/sort/filter with a per-submission detail view and permanent delete), delete-only retention with a scheduled daily purge and audit log, IP-storage suppression, and WordPress Personal Data export/erase integration.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Includes a small automatic database update (wider columns and an email-hash column) to support encryption at rest in add-ons. No changes to capture or retention.
 
 = 1.0.0 =
 Initial release.

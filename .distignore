@@ -23,11 +23,13 @@ vendor
 
 # Source (compiled into build/, which is shipped) + throwaway dev files
 src
+bin
 _smoke.php
 
 # Developer docs & AI assistant state
 docs
 CLAUDE.md
+README.md
 .claude
 
 # Tooling caches / OS cruft

@@ -16,7 +16,7 @@
  * Plugin Name:       The Bonnie Situation
  * Plugin URI:        https://beforebonnie.com
  * Description:       Store Contact Form 7 submissions, then auto-delete them on a schedule - capture and browse without hoarding PII. Clean it up before Bonnie gets home.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.7
  * Requires PHP:      8.1
  * Requires Plugins:  contact-form-7
@@ -38,12 +38,12 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'BONNIE_VERSION', '1.0.0' );
+define( 'BONNIE_VERSION', '1.1.0' );
 
 /**
  * Schema version (bump when the table structure changes) and shared paths.
  */
-define( 'BONNIE_DB_VERSION', '1.0.0' );
+define( 'BONNIE_DB_VERSION', '1.1.0' );
 define( 'BONNIE_PLUGIN_FILE', __FILE__ );
 define( 'BONNIE_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BONNIE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -83,7 +83,15 @@ function bonnie_capability() {
  * @return string
  */
 function bonnie_upgrade_url() {
-	return apply_filters( 'bonnie_upgrade_url', 'https://beforebonnie.com/pro/' );
+	$url = add_query_arg(
+		array(
+			'utm_source'   => 'the-bonnie-situation',
+			'utm_medium'   => 'plugin-settings',
+			'utm_campaign' => 'upgrade',
+		),
+		'https://beforebonnie.com/pricing'
+	);
+	return apply_filters( 'bonnie_upgrade_url', $url );
 }
 
 /**
@@ -103,6 +111,19 @@ function bonnie_deactivate() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-bonnie-deactivator.php';
 	Bonnie_Deactivator::deactivate();
 }
+
+/**
+ * Bring the schema up to date after a plugin update (activation hooks don't
+ * run on update). Early on plugins_loaded, before anything captures.
+ */
+function bonnie_maybe_upgrade() {
+	if ( get_option( 'bonnie_db_version' ) === BONNIE_DB_VERSION ) {
+		return;
+	}
+	require_once plugin_dir_path( __FILE__ ) . 'includes/class-bonnie-activator.php';
+	Bonnie_Activator::upgrade();
+}
+add_action( 'plugins_loaded', 'bonnie_maybe_upgrade', 1 );
 
 register_activation_hook( __FILE__, 'bonnie_activate' );
 register_deactivation_hook( __FILE__, 'bonnie_deactivate' );

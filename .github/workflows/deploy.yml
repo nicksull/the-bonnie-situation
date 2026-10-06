@@ -8,7 +8,8 @@ name: Deploy to WordPress.org
 # Requires two repository secrets (Settings -> Secrets and variables ->
 # Actions), added AFTER the plugin is approved and its SVN repo exists:
 #   SVN_USERNAME - your WordPress.org username
-#   SVN_PASSWORD - your WordPress.org account password
+#   SVN_PASSWORD - your WordPress.org SVN password (generated under Profile ->
+#                  Account & Security; NOT your account login password)
 #
 # Files shipped to SVN are filtered by .distignore, so dev files (.github,
 # src, node_modules, .wp-env.json, CLAUDE.md, .claude, docs, etc.) are excluded.
@@ -39,6 +40,13 @@ jobs:
           npm ci
           npm run build
 
+      - name: Read the plugin version
+        id: version
+        run: |
+          version=$(grep -m1 -oP '^\s*\*\s*Version:\s*\K\S+' the-bonnie-situation.php)
+          [ -n "$version" ] || { echo "Could not read Version from plugin header"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Deploy to WordPress.org
         uses: 10up/action-wordpress-plugin-deploy@stable
         with:
@@ -47,6 +55,7 @@ jobs:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SLUG: the-bonnie-situation
+          VERSION: ${{ steps.version.outputs.version }}
 
       - name: Attach the built zip to the GitHub release
         uses: softprops/action-gh-release@v2
