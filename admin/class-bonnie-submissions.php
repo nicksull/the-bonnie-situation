@@ -348,7 +348,15 @@ class Bonnie_Submissions_Page {
 			__( 'Subject', 'the-bonnie-situation' ) => $sub->subject,
 		);
 		if ( $store_ip ) {
-			$rows[ __( 'IP', 'the-bonnie-situation' ) ]      = $this->store->ip_to_string( $sub->remote_ip );
+			/**
+			 * Filters the IP shown on the submission detail view. Display only;
+			 * the stored value is unchanged.
+			 *
+			 * @since 1.1.1
+			 * @param string $ip  Stored IP as a string.
+			 * @param object $sub The submission row being viewed.
+			 */
+			$rows[ __( 'IP', 'the-bonnie-situation' ) ] = (string) apply_filters( 'bonnie_submission_display_ip', $this->store->ip_to_string( $sub->remote_ip ), $sub );
 		}
 		if ( ! empty( $sub->referer_url ) ) {
 			$rows[ __( 'Referrer', 'the-bonnie-situation' ) ] = $sub->referer_url;
