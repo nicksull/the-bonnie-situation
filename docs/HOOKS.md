@@ -104,6 +104,7 @@ register further actions (e.g. the Pro trash workflow / bulk delete):
 |---|---|---|---|
 | `bonnie_submissions_list_header` | action | — | After the submissions page title. Add page-title actions (e.g. Pro's Export buttons). |
 | `bonnie_submission_detail_actions` | action | `object $sub` | In the detail-view action bar. Add buttons (e.g. Pro's Move to Trash / Restore). Build nonced links with `Bonnie_Submissions_Page::detail_action_url()`. |
+| `bonnie_submission_display_ip` | filter | `string $ip, object $sub` | The IP shown on the detail view. Display only (e.g. Pro labels anonymised addresses). |
 | `bonnie_admin_notices` | filter | `array $messages, int $count` | Register post-action admin notices keyed by the `bonnie_notice` query var. |
 
 ## Admin UI — React (`wp.hooks` JS filters)

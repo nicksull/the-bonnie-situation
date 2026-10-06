@@ -30,7 +30,7 @@ IP storage is off, spam is discarded, user agent and referrer are off, and only 
 
 = Bonnie Pro =
 
-This plugin is fully functional on its own: it captures submissions and enforces delete-only retention. [Bonnie Pro](https://beforebonnie.com/pricing), a separate add-on distributed off WordPress.org, adds:
+This plugin is fully functional on its own: it captures submissions and enforces delete-only retention. [Bonnie Pro](https://beforebonnie.com/pricing?utm_source=wordpress.org&utm_medium=plugin-listing&utm_campaign=upgrade), a separate add-on distributed off WordPress.org, adds:
 
 * **CSV / JSON export** of the current view or selected rows.
 * **Address book** of deduplicated contacts, with click-through to each contact's submissions.
