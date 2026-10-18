@@ -20,6 +20,8 @@ add_action( 'bonnie_loaded', function ( Bonnie_Services $services ) {
     $logger = $services->logger();  // Bonnie_Logger
     $loader = $services->loader();  // Bonnie_Loader
     $core   = $services->version(); // string
+    // Since 1.2.0 — guard with method_exists() for older cores.
+    $import = $services->importer(); // Bonnie_Importer: status(), run_batch( $source, $limit )
 } );
 ```
 
@@ -47,6 +49,17 @@ The same registry is available on demand via the global `bonnie()` accessor
 | `bonnie_before_store` | filter | `array $row, array $posted, WPCF7_ContactForm $form` | Transform the submission row before write (e.g. **encrypt columns**). |
 | `bonnie_before_store_meta` | filter | `array $meta, array $posted, WPCF7_ContactForm $form` | Transform meta before write (e.g. **encrypt meta values**). |
 | `bonnie_after_store` | action | `int $submission_id, array $row, array $posted` | React to a stored submission (e.g. upsert an **address-book contact**). |
+
+### Imported entries — `since 1.2.0`
+
+The importer (Settings → Import, for Flamingo and CFDB7 data) assembles each
+entry with the same capture settings and fires `bonnie_capture_remote_ip`,
+`bonnie_before_store`, `bonnie_before_store_meta` and `bonnie_after_store`
+exactly as a live capture does, so encryption and the address book apply to
+imported rows too. `bonnie_should_capture` does not fire. The
+`WPCF7_ContactForm $form` argument is **null** when the entry's form no longer
+exists — handlers must not assume a form object. `$row['created_at']` carries
+the entry's original date, not the import time.
 
 ## Read path (decrypt seam)
 

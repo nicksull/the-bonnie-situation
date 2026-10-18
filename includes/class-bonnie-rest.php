@@ -46,15 +46,24 @@ class Bonnie_REST {
 	protected $logger;
 
 	/**
+	 * Importer for Flamingo / CFDB7 data.
+	 *
+	 * @var Bonnie_Importer
+	 */
+	protected $importer;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 1.0.0
-	 * @param Bonnie_Store  $store  Data-access layer.
-	 * @param Bonnie_Logger $logger Logger.
+	 * @param Bonnie_Store    $store    Data-access layer.
+	 * @param Bonnie_Logger   $logger   Logger.
+	 * @param Bonnie_Importer $importer Importer (since 1.2.0).
 	 */
-	public function __construct( Bonnie_Store $store, Bonnie_Logger $logger ) {
-		$this->store  = $store;
-		$this->logger = $logger;
+	public function __construct( Bonnie_Store $store, Bonnie_Logger $logger, Bonnie_Importer $importer ) {
+		$this->store    = $store;
+		$this->logger   = $logger;
+		$this->importer = $importer;
 	}
 
 	/**
@@ -113,6 +122,49 @@ class Bonnie_REST {
 				),
 			)
 		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/import',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_import_status' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+				),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'run_import' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+					'args'                => array(
+						'source' => array( 'type' => 'string', 'required' => true ),
+						'limit'  => array( 'type' => 'integer', 'default' => 50 ),
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Sources on this site with data Bonnie can import.
+	 *
+	 * @since 1.2.0
+	 * @return WP_REST_Response
+	 */
+	public function get_import_status() {
+		return new WP_REST_Response( $this->importer->status() );
+	}
+
+	/**
+	 * Import the next batch from a source.
+	 *
+	 * @since 1.2.0
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function run_import( WP_REST_Request $request ) {
+		$result = $this->importer->run_batch( sanitize_key( $request['source'] ), (int) $request['limit'] );
+		return is_wp_error( $result ) ? $result : new WP_REST_Response( $result );
 	}
 
 	/**

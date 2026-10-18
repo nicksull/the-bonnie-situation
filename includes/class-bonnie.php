@@ -159,6 +159,14 @@ class Bonnie {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bonnie-privacy.php';
 
 		/**
+		 * Importer for Flamingo and CFDB7 data, and its source adapters.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bonnie-import-source.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bonnie-import-flamingo.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bonnie-import-cfdb7.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bonnie-importer.php';
+
+		/**
 		 * REST API for the DataViews admin.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bonnie-rest.php';
@@ -171,11 +179,15 @@ class Bonnie {
 
 		$this->loader = new Bonnie_Loader();
 
+		$store  = new Bonnie_Store();
+		$logger = new Bonnie_Logger();
+
 		$this->services = new Bonnie_Services(
-			new Bonnie_Store(),
-			new Bonnie_Logger(),
+			$store,
+			$logger,
 			$this->loader,
-			$this->version
+			$this->version,
+			new Bonnie_Importer( $store, $logger, new Bonnie_Capture( $store, $logger ) )
 		);
 
 	}
@@ -321,7 +333,7 @@ class Bonnie {
 	 */
 	private function define_rest_hooks() {
 
-		$rest = new Bonnie_REST( new Bonnie_Store(), new Bonnie_Logger() );
+		$rest = new Bonnie_REST( new Bonnie_Store(), new Bonnie_Logger(), $this->services->importer() );
 
 		$this->loader->add_action( 'rest_api_init', $rest, 'register_routes' );
 
