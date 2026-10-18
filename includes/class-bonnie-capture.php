@@ -69,6 +69,12 @@ class Bonnie_Capture {
 				return;
 			}
 
+			// The form's do_not_store setting, or an unticked consent_for:storage
+			// checkbox, means nothing is stored — consent is not overridable.
+			if ( $submission->get_meta( 'do_not_store' ) ) {
+				return;
+			}
+
 			$status = ( is_array( $result ) && isset( $result['status'] ) ) ? $result['status'] : '';
 
 			$capture = $this->should_capture( $status );
@@ -90,6 +96,7 @@ class Bonnie_Capture {
 			if ( ! is_array( $posted ) ) {
 				$posted = array();
 			}
+			$posted = $this->without_do_not_store( $contact_form, $posted );
 
 			$row  = $this->build_submission( $contact_form, $submission, $posted, $status );
 			$meta = $this->build_meta( $posted );
@@ -169,7 +176,42 @@ class Bonnie_Capture {
 	 * @return array
 	 */
 	protected function build_submission( $contact_form, $submission, array $posted, $status ) {
-		$form_id  = (int) $contact_form->id();
+		$environment = array(
+			'remote_ip'  => (string) $submission->get_meta( 'remote_ip' ),
+			'user_agent' => (string) $submission->get_meta( 'user_agent' ),
+			'url'        => (string) $submission->get_meta( 'url' ),
+		);
+
+		return $this->assemble_row(
+			(int) $contact_form->id(),
+			(string) $contact_form->title(),
+			$posted,
+			$status,
+			$environment,
+			current_time( 'mysql' ),
+			$contact_form
+		);
+	}
+
+	/**
+	 * Assemble the submission column values from posted data, honouring the
+	 * effective capture settings (IP / user agent / referrer suppression and
+	 * field mapping).
+	 *
+	 * Shared by live capture and the importer, so an imported entry is stored
+	 * under exactly the same privacy rules as a fresh submission.
+	 *
+	 * @since 1.2.0
+	 * @param int                    $form_id      CF7 form id (0 if unknown).
+	 * @param string                 $form_title   Form title.
+	 * @param array                  $posted       Posted field data.
+	 * @param string                 $status       CF7 result status ('spam' stores as spam).
+	 * @param array                  $environment  Raw remote_ip, user_agent and url strings.
+	 * @param string                 $created_at   MySQL datetime, site timezone.
+	 * @param WPCF7_ContactForm|null $contact_form The form, when it still exists.
+	 * @return array
+	 */
+	public function assemble_row( $form_id, $form_title, array $posted, $status, array $environment, $created_at, $contact_form = null ) {
 		$settings = Bonnie_Store::effective_capture( $form_id );
 
 		// A per-form field mapping, when set, takes priority over auto-detection.
@@ -183,7 +225,7 @@ class Bonnie_Capture {
 
 		$remote_ip = null;
 		if ( $settings['store_ip'] ) {
-			$raw_ip = (string) $submission->get_meta( 'remote_ip' );
+			$raw_ip = isset( $environment['remote_ip'] ) ? (string) $environment['remote_ip'] : '';
 
 			/**
 			 * Filter the raw remote IP string before it is packed for storage.
@@ -193,9 +235,9 @@ class Bonnie_Capture {
 			 * which stores the address as received (only when IP storage is on).
 			 *
 			 * @since 1.0.0
-			 * @param string            $raw_ip   Raw IP string as received.
-			 * @param array             $settings Effective capture settings.
-			 * @param WPCF7_ContactForm $contact_form The form.
+			 * @param string                 $raw_ip       Raw IP string as received.
+			 * @param array                  $settings     Effective capture settings.
+			 * @param WPCF7_ContactForm|null $contact_form The form (null for an imported entry whose form is gone).
 			 */
 			$raw_ip    = (string) apply_filters( 'bonnie_capture_remote_ip', $raw_ip, $settings, $contact_form );
 			$remote_ip = $this->pack_ip( $raw_ip );
@@ -203,23 +245,23 @@ class Bonnie_Capture {
 
 		$user_agent = null;
 		if ( $settings['store_user_agent'] ) {
-			$ua         = (string) $submission->get_meta( 'user_agent' );
+			$ua         = isset( $environment['user_agent'] ) ? (string) $environment['user_agent'] : '';
 			$user_agent = '' !== $ua ? mb_substr( $ua, 0, 255 ) : null;
 		}
 
 		$referer = null;
 		if ( $settings['store_referer'] ) {
-			$url     = (string) $submission->get_meta( 'url' );
+			$url     = isset( $environment['url'] ) ? (string) $environment['url'] : '';
 			$referer = '' !== $url ? esc_url_raw( $url ) : null;
 		}
 
-		$consent = $this->collect_consent( $contact_form, $posted );
+		$consent = $contact_form ? $this->collect_consent( $contact_form, $posted ) : array();
 
 		$email = sanitize_email( $email );
 
 		return array(
-			'form_id'       => $form_id,
-			'form_title'    => (string) $contact_form->title(),
+			'form_id'       => (int) $form_id,
+			'form_title'    => (string) $form_title,
 			'status'        => ( 'spam' === $status ) ? 'spam' : 'active',
 			'channel'       => 'inbound',
 			'subject'       => '' !== $subject ? mb_substr( $subject, 0, 255 ) : '',
@@ -229,7 +271,7 @@ class Bonnie_Capture {
 			'user_agent'    => $user_agent,
 			'referer_url'   => $referer,
 			'consent_flags' => ! empty( $consent ) ? wp_json_encode( $consent ) : null,
-			'created_at'    => current_time( 'mysql' ),
+			'created_at'    => (string) $created_at,
 		);
 	}
 
@@ -240,7 +282,7 @@ class Bonnie_Capture {
 	 * @param array $posted Raw posted field data.
 	 * @return array meta_key => meta_value.
 	 */
-	protected function build_meta( array $posted ) {
+	public function build_meta( array $posted ) {
 		$meta = array();
 		foreach ( $posted as $key => $value ) {
 			if ( 0 === strpos( (string) $key, '_wpcf7' ) ) {
@@ -263,6 +305,26 @@ class Bonnie_Capture {
 		}
 
 		return $meta;
+	}
+
+	/**
+	 * Drop values of form tags flagged do-not-store (e.g. quiz answers, CAPTCHA).
+	 *
+	 * @since 1.2.0
+	 * @param WPCF7_ContactForm $contact_form The form.
+	 * @param array             $posted       Raw posted field data.
+	 * @return array
+	 */
+	protected function without_do_not_store( $contact_form, array $posted ) {
+		if ( ! method_exists( $contact_form, 'scan_form_tags' ) ) {
+			return $posted;
+		}
+		foreach ( $contact_form->scan_form_tags( array( 'feature' => 'do-not-store' ) ) as $tag ) {
+			if ( is_object( $tag ) && isset( $tag->name ) ) {
+				unset( $posted[ $tag->name ] );
+			}
+		}
+		return $posted;
 	}
 
 	/**

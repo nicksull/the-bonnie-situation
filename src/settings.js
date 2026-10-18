@@ -8,7 +8,7 @@
  */
 
 import apiFetch from '@wordpress/api-fetch';
-import { createRoot, Fragment, render, useState } from '@wordpress/element';
+import { createRoot, Fragment, render, useEffect, useState } from '@wordpress/element';
 import {
 	Card,
 	CardBody,
@@ -22,7 +22,7 @@ import {
 } from '@wordpress/components';
 import { applyFilters } from '@wordpress/hooks';
 import domReady from '@wordpress/dom-ready';
-import { __ } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 
 const boot = window.bonnieSettings || {};
 const upgradeUrl = boot.upgradeUrl || '#';
@@ -38,7 +38,7 @@ const PRO_FEATURES = [
 	__( 'Address book of deduplicated contacts', 'the-bonnie-situation' ),
 	__( 'IP anonymisation', 'the-bonnie-situation' ),
 	__( 'Encryption at rest, with the key kept out of the database', 'the-bonnie-situation' ),
-	__( 'WP-CLI purge command', 'the-bonnie-situation' ),
+	__( 'WP-CLI purge and import commands', 'the-bonnie-situation' ),
 ];
 
 function Section( { title, children } ) {
@@ -52,8 +52,134 @@ function Section( { title, children } ) {
 	);
 }
 
+/**
+ * Import card: lists Flamingo / CFDB7 data found on the site and imports it in
+ * batches through /bonnie/v1/import. Renders nothing when there is no source.
+ */
+function ImportCard( { retentionDays, policy } ) {
+	const [ sources, setSources ] = useState( [] );
+	const [ running, setRunning ] = useState( null );
+	const [ notice, setNotice ] = useState( null );
+
+	const load = () =>
+		apiFetch( { path: '/bonnie/v1/import' } )
+			.then( ( list ) => setSources( Array.isArray( list ) ? list : [] ) )
+			.catch( () => setSources( [] ) );
+
+	useEffect( () => {
+		load();
+	}, [] );
+
+	const run = async ( source ) => {
+		setRunning( source.id );
+		setNotice( null );
+		let imported = 0;
+		let skipped = 0;
+		try {
+			for ( ;; ) {
+				const batch = await apiFetch( {
+					path: '/bonnie/v1/import',
+					method: 'POST',
+					data: { source: source.id, limit: 50 },
+				} );
+				imported += batch.imported;
+				skipped += batch.skipped;
+				setSources( ( prev ) =>
+					prev.map( ( s ) => ( s.id === source.id ? { ...s, remaining: batch.remaining } : s ) )
+				);
+				if ( batch.done || batch.imported + batch.skipped === 0 ) {
+					break;
+				}
+			}
+			setNotice( {
+				status: 'success',
+				text: sprintf(
+					/* translators: 1: number imported, 2: source plugin name, 3: number skipped */
+					__( 'Imported %1$d entries from %2$s. Skipped %3$d (spam, or already past your retention window).', 'the-bonnie-situation' ),
+					imported,
+					source.label,
+					skipped
+				),
+			} );
+		} catch ( err ) {
+			setNotice( {
+				status: 'error',
+				text: err && err.message ? err.message : __( 'The import stopped. Run it again to continue where it left off.', 'the-bonnie-situation' ),
+			} );
+		} finally {
+			setRunning( null );
+			load();
+		}
+	};
+
+	if ( ! sources.length ) {
+		return null;
+	}
+
+	return (
+		<div style={ { marginTop: 24 } }>
+			<Section title={ __( 'Import', 'the-bonnie-situation' ) }>
+				<p style={ { marginTop: 0 } }>
+					{ __( 'Bring existing Contact Form 7 entries into Bonnie. They are stored under your current privacy settings, so IP addresses, user agents and referrers are dropped unless you have turned them on.', 'the-bonnie-situation' ) }
+				</p>
+				{ 'none' !== policy ? (
+					<p>
+						{ sprintf(
+							/* translators: %d: retention window in days */
+							__( 'Entries older than your %d-day retention window are skipped: they would be deleted on the next daily cleanup anyway.', 'the-bonnie-situation' ),
+							Number( retentionDays ) || 30
+						) }
+					</p>
+				) : null }
+				{ notice ? (
+					<div style={ { marginBottom: 12 } }>
+						<Notice status={ notice.status } onRemove={ () => setNotice( null ) }>
+							{ notice.text }
+						</Notice>
+					</div>
+				) : null }
+				{ sources.map( ( source ) => (
+					<div
+						key={ source.id }
+						style={ { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '12px 0', borderTop: '1px solid #e0e0e0' } }
+					>
+						<div>
+							<strong>{ source.label }</strong>
+							<div style={ { color: '#757575' } }>
+								{ source.remaining > 0
+									? sprintf(
+										/* translators: 1: entries left to import, 2: total entries */
+										_n( '%1$d of %2$d entry left to import', '%1$d of %2$d entries left to import', source.total, 'the-bonnie-situation' ),
+										source.remaining,
+										source.total
+									)
+									: __( 'Everything has been imported.', 'the-bonnie-situation' ) }
+							</div>
+						</div>
+						<Button
+							variant="secondary"
+							isBusy={ running === source.id }
+							disabled={ null !== running || source.remaining < 1 }
+							onClick={ () => run( source ) }
+						>
+							{ running === source.id
+								? __( 'Importing…', 'the-bonnie-situation' )
+								: __( 'Import', 'the-bonnie-situation' ) }
+						</Button>
+					</div>
+				) ) }
+				<p style={ { marginBottom: 0, color: '#757575' } }>
+					{ __( 'Nothing is changed or removed in the source plugin. Once you have checked the import, delete the old entries there — otherwise those copies keep living in your database with no expiry.', 'the-bonnie-situation' ) }
+				</p>
+			</Section>
+		</div>
+	);
+}
+
 function SettingsApp() {
 	const [ settings, setSettings ] = useState( boot.settings || {} );
+	// Last-saved values: the importer applies these, not unsaved edits.
+	const [ saved, setSaved ] = useState( boot.settings || {} );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 
@@ -66,8 +192,9 @@ function SettingsApp() {
 		setSaving( true );
 		setNotice( null );
 		apiFetch( { path: '/bonnie/v1/settings', method: 'POST', data: settings } )
-			.then( ( saved ) => {
-				setSettings( saved );
+			.then( ( result ) => {
+				setSettings( result );
+				setSaved( result );
 				setNotice( { status: 'success', text: __( 'Settings saved.', 'the-bonnie-situation' ) } );
 			} )
 			.catch( ( err ) => {
@@ -205,6 +332,8 @@ function SettingsApp() {
 			<Button variant="primary" isBusy={ saving } disabled={ saving } onClick={ save }>
 				{ __( 'Save changes', 'the-bonnie-situation' ) }
 			</Button>
+
+			<ImportCard retentionDays={ saved.retention_days } policy={ saved.retention_policy || 'none' } />
 
 			{ extraCards.length ? (
 				<div style={ { marginTop: 24 } }>
