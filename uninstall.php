@@ -63,3 +63,5 @@ foreach ( $bonnie_tables as $bonnie_table ) {
 
 delete_option( Bonnie_Store::OPTION_SETTINGS );
 delete_option( Bonnie_Store::OPTION_DB_VERSION );
+delete_option( 'bonnie_import_state_flamingo' );
+delete_option( 'bonnie_import_state_cfdb7' );

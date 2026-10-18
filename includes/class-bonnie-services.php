@@ -54,19 +54,39 @@ class Bonnie_Services {
 	protected $version;
 
 	/**
+	 * Flamingo / CFDB7 importer.
+	 *
+	 * @var Bonnie_Importer|null
+	 */
+	protected $importer;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 1.1.0
-	 * @param Bonnie_Store  $store   Data-access layer.
-	 * @param Bonnie_Logger $logger  Logger.
-	 * @param Bonnie_Loader $loader  Hook loader.
-	 * @param string        $version Running core version.
+	 * @param Bonnie_Store         $store    Data-access layer.
+	 * @param Bonnie_Logger        $logger   Logger.
+	 * @param Bonnie_Loader        $loader   Hook loader.
+	 * @param string               $version  Running core version.
+	 * @param Bonnie_Importer|null $importer Importer (since 1.2.0).
 	 */
-	public function __construct( Bonnie_Store $store, Bonnie_Logger $logger, Bonnie_Loader $loader, $version ) {
-		$this->store   = $store;
-		$this->logger  = $logger;
-		$this->loader  = $loader;
-		$this->version = (string) $version;
+	public function __construct( Bonnie_Store $store, Bonnie_Logger $logger, Bonnie_Loader $loader, $version, $importer = null ) {
+		$this->store    = $store;
+		$this->logger   = $logger;
+		$this->loader   = $loader;
+		$this->version  = (string) $version;
+		$this->importer = $importer;
+	}
+
+	/**
+	 * The Flamingo / CFDB7 importer. Add-ons should check
+	 * `method_exists( $services, 'importer' )` to support older cores.
+	 *
+	 * @since  1.2.0
+	 * @return Bonnie_Importer|null
+	 */
+	public function importer() {
+		return $this->importer;
 	}
 
 	/**
