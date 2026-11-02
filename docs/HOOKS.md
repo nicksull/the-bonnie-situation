@@ -101,6 +101,43 @@ per-form overrides and the trash + hard-cap strategy on `bonnie_retention_after_
 | `bonnie_purge_cutoff` | filter | `string $cutoff, string $scope` | MySQL datetime; rows older than this are acted on. |
 | `bonnie_retention_after_run` | action | `int $now_ts, string $now` | Fires after the free delete-only sweep. Add-ons run the trash workflow, the hard-cap sweep and per-form scopes here. |
 
+### Retention health — `since 1.3.0`
+
+Each purge run is recorded by `Bonnie_Retention_Status`, available as
+`bonnie()->retention_status()` (guard with `method_exists()` for older cores).
+Core reports problems in **Site Health** and an admin notice; add-ons use the
+actions below to notify people elsewhere (Pro: Slack, email, webhook).
+
+A run fails if any scope throws. The core global sweep and
+`bonnie_retention_after_run` are each wrapped separately, so one failing never
+stops the other. An add-on that catches its own errors must report them, or
+the run counts as a success:
+
+```php
+} catch ( \Throwable $e ) {
+    bonnie()->retention_status()->fail( 'form:12', $e );
+}
+```
+
+`Bonnie_Store::delete_submissions()` throws on a SQL error (it used to return
+0 and commit), so add-on sweeps that delete through it fail loudly too.
+
+The purge counts as **stale** when retention is on and either the cron event is
+missing (core re-creates it on `init` first) or there's been no successful run
+for `Bonnie_Retention_Status::STALE_AFTER` (48h). That covers WP-Cron being
+disabled with no system cron, and runs killed by fatal errors.
+
+| Hook | Type | Signature | Purpose |
+|---|---|---|---|
+| `bonnie_retention_failed` | action | `string $message, string $scope, array $status` | A scope failed. Fires on **every** failure; throttle notifications. `$status['failures']` = consecutive failed runs. |
+| `bonnie_retention_stale` | action | `array $health` | The purge has stopped running. Fires once per stall (checked on `init`). |
+| `bonnie_retention_recovered` | action | `array $status` | First successful run after failures or a stall. |
+
+`->health()` returns `{ state, reason, error, scope, last_success, failures }`,
+where `state` is `disabled` \| `ok` \| `failing` \| `stale` (`reason`:
+`unscheduled` \| `stalled`). `Bonnie_Retention_Status::describe( $health )`
+gives a one-line, translated, plain-text summary ('' when healthy).
+
 ## REST batch endpoint
 
 `POST bonnie/v1/submissions/batch` handles permanent `delete` in core. Add-ons

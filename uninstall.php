@@ -38,6 +38,9 @@ if ( $bonnie_role && $bonnie_role->has_cap( 'manage_bonnie' ) ) {
 	$bonnie_role->remove_cap( 'manage_bonnie' );
 }
 
+// Purge run record (timestamps and error text, no submission data).
+delete_option( 'bonnie_retention_status' );
+
 $bonnie_settings = get_option( Bonnie_Store::OPTION_SETTINGS, array() );
 
 // Preserve all data unless the operator has explicitly opted in to deletion.
