@@ -65,15 +65,25 @@ class Bonnie_Retention {
 	protected $logger;
 
 	/**
+	 * Run record / health.
+	 *
+	 * @var Bonnie_Retention_Status
+	 */
+	protected $status;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 1.0.0
-	 * @param Bonnie_Store  $store  Data-access layer.
-	 * @param Bonnie_Logger $logger Logger.
+	 * @since 1.3.0 Takes the shared run record.
+	 * @param Bonnie_Store            $store  Data-access layer.
+	 * @param Bonnie_Logger           $logger Logger.
+	 * @param Bonnie_Retention_Status $status Run record.
 	 */
-	public function __construct( Bonnie_Store $store, Bonnie_Logger $logger ) {
+	public function __construct( Bonnie_Store $store, Bonnie_Logger $logger, Bonnie_Retention_Status $status ) {
 		$this->store  = $store;
 		$this->logger = $logger;
+		$this->status = $status;
 	}
 
 	/**
@@ -83,11 +93,15 @@ class Bonnie_Retention {
 	 * @return void
 	 */
 	public function run() {
-		try {
-			$now_ts = current_time( 'timestamp' ); // phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
-			$now    = gmdate( 'Y-m-d H:i:s', $now_ts );
-			$more   = false;
+		$this->status->start();
 
+		$now_ts = current_time( 'timestamp' ); // phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
+		$now    = gmdate( 'Y-m-d H:i:s', $now_ts );
+		$more   = false;
+
+		// Each stage gets its own try so a failing global sweep doesn't stop
+		// the add-on's scopes (or vice versa) from being enforced.
+		try {
 			/**
 			 * Filter the set of form ids that override the global retention policy.
 			 *
@@ -104,25 +118,35 @@ class Bonnie_Retention {
 
 			if ( 'delete' === $global['policy'] ) {
 				$cutoff = $this->cutoff( $now_ts, $global['days'], 'global' );
-				$more   = $this->delete_before( $cutoff, $now, $this->exclude_clause( $overrides ), 'global' ) || $more;
+				$more   = $this->delete_before( $cutoff, $now, $this->exclude_clause( $overrides ), 'global' );
 			}
+		} catch ( \Throwable $e ) {
+			$this->logger->error( 'purge_failed', $e );
+			$this->status->fail( 'global', $e );
+		}
 
+		try {
 			/**
 			 * Fires after the free core's delete-only sweep. Add-ons enforce the
 			 * trash workflow, the hard-cap sweep and per-form overrides here.
+			 * Add-ons that catch their own errors report them with
+			 * `bonnie()->retention_status()->fail()` (since 1.3.0).
 			 *
 			 * @since 1.0.0
 			 * @param int    $now_ts Current timestamp (site time).
 			 * @param string $now    Current MySQL datetime.
 			 */
 			do_action( 'bonnie_retention_after_run', $now_ts, $now );
-
-			if ( $more ) {
-				$this->reschedule();
-			}
 		} catch ( \Throwable $e ) {
 			$this->logger->error( 'purge_failed', $e );
+			$this->status->fail( 'addon', $e );
 		}
+
+		if ( $more ) {
+			$this->reschedule();
+		}
+
+		$this->status->finish();
 	}
 
 	/**
@@ -193,14 +217,20 @@ class Bonnie_Retention {
 				)
 			);
 
+			// A failed SELECT returns an empty array, which would look like
+			// "nothing to delete"; $wpdb resets last_error on every query.
+			if ( '' !== $wpdb->last_error ) {
+				throw new \RuntimeException( 'Could not select expired submissions: ' . $wpdb->last_error );
+			}
+
 			$last = count( $ids );
 			if ( 0 === $last ) {
 				break;
 			}
 
-			$this->store->delete_submissions( array_map( 'intval', $ids ) );
-
-			$total += $last;
+			// Count what was actually deleted, not what was selected, so the
+			// audit log can't overstate a partial delete.
+			$total += (int) $this->store->delete_submissions( array_map( 'intval', $ids ) );
 			++$batches;
 		} while ( self::BATCH === $last && $batches < self::MAX_BATCHES_PER_RUN );
 

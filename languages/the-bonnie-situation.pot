@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-18T05:56:20+00:00\n"
+"POT-Creation-Date: 2026-11-02T08:43:46+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: the-bonnie-situation\n"
@@ -99,20 +99,17 @@ msgstr ""
 
 #: admin/class-bonnie-submissions.php:343
 #: includes/class-bonnie-privacy.php:114
-#: build/index.js:22
 #: src/index.js:140
 msgid "Date"
 msgstr ""
 
 #: admin/class-bonnie-submissions.php:344
 #: includes/class-bonnie-privacy.php:118
-#: build/index.js:22
 #: src/index.js:149
 msgid "Form"
 msgstr ""
 
 #: admin/class-bonnie-submissions.php:345
-#: build/index.js:22
 #: src/index.js:179
 msgid "Status"
 msgstr ""
@@ -127,13 +124,11 @@ msgstr ""
 
 #: admin/class-bonnie-submissions.php:348
 #: includes/class-bonnie-privacy.php:122
-#: build/index.js:22
 #: src/index.js:174
 msgid "Subject"
 msgstr ""
 
 #: admin/class-bonnie-submissions.php:359
-#: build/index.js:22
 #: src/index.js:191
 msgid "IP"
 msgstr ""
@@ -155,7 +150,6 @@ msgid "No stored fields."
 msgstr ""
 
 #: admin/class-bonnie-submissions.php:386
-#: build/index.js:22
 #: src/index.js:214
 msgid "Delete permanently"
 msgstr ""
@@ -210,106 +204,161 @@ msgstr ""
 msgid "The action could not be completed."
 msgstr ""
 
+#: includes/class-bonnie-retention-status.php:136
+msgid "Unknown error."
+msgstr ""
+
+#. translators: %s: error message.
+#: includes/class-bonnie-retention-status.php:339
+#, php-format
+msgid "The scheduled cleanup of old Contact Form 7 submissions failed, so entries may be kept past your retention window. Error: %s"
+msgstr ""
+
+#: includes/class-bonnie-retention-status.php:345
+msgid "The scheduled cleanup of old Contact Form 7 submissions isn't scheduled, so entries are being kept past your retention window."
+msgstr ""
+
+#. translators: %s: time since the last successful cleanup, e.g. "3 days".
+#: includes/class-bonnie-retention-status.php:352
+#, php-format
+msgid "The scheduled cleanup of old Contact Form 7 submissions hasn't run successfully for %s, so entries may be kept past your retention window. Check that WP-Cron (or a system cron calling wp-cron.php) is running."
+msgstr ""
+
+#: includes/class-bonnie-retention-status.php:355
+msgid "The scheduled cleanup of old Contact Form 7 submissions hasn't run yet, so entries may be kept past your retention window. Check that WP-Cron (or a system cron calling wp-cron.php) is running."
+msgstr ""
+
+#: includes/class-bonnie-retention-status.php:370
+msgid "Contact Form 7 submission cleanup"
+msgstr ""
+
+#: includes/class-bonnie-retention-status.php:385
+msgid "Old Contact Form 7 submissions are being cleaned up on schedule"
+msgstr ""
+
+#: includes/class-bonnie-retention-status.php:388
+#: src/settings.js:294
+msgid "Privacy"
+msgstr ""
+
+#: includes/class-bonnie-retention-status.php:391
+msgid "Bonnie deletes stored submissions once they pass your retention window."
+msgstr ""
+
+#: includes/class-bonnie-retention-status.php:397
+msgid "No retention policy is set for Contact Form 7 submissions"
+msgstr ""
+
+#: includes/class-bonnie-retention-status.php:398
+msgid "Bonnie keeps stored submissions indefinitely. Set a retention window so personal data isn't kept longer than you need it."
+msgstr ""
+
+#: includes/class-bonnie-retention-status.php:401
+msgid "The cleanup of old Contact Form 7 submissions is failing"
+msgstr ""
+
+#: includes/class-bonnie-retention-status.php:402
+msgid "The cleanup of old Contact Form 7 submissions isn't running"
+msgstr ""
+
+#: includes/class-bonnie-retention-status.php:410
+msgid "Bonnie settings"
+msgstr ""
+
+#: includes/class-bonnie-retention-status.php:441
+msgid "Bonnie:"
+msgstr ""
+
 #: includes/class-bonnie-store.php:373
 msgid "[Encrypted — needs Bonnie Pro and its encryption key]"
 msgstr ""
 
-#: includes/class-bonnie.php:291
+#: includes/class-bonnie.php:293
 msgid "Bonnie needs Contact Form 7 to capture submissions. Please install and activate Contact Form 7."
 msgstr ""
 
-#. translators: %s: field label
-#: build/index.js:22
 #: src/index.js:100
 msgid "Could not load submissions."
 msgstr ""
 
-#: build/index.js:22
 #: src/index.js:130
 msgid "Active"
 msgstr ""
 
-#: build/index.js:22
 #: src/index.js:131
 msgid "Spam"
 msgstr ""
 
-#: build/index.js:22
 #: src/index.js:158
 msgid "From"
 msgstr ""
 
-#: build/index.js:22
 #: src/index.js:204
 msgid "View"
 msgstr ""
 
-#: build/index.js:22
 #: src/index.js:222
 msgid "Permanently delete this submission? This cannot be undone."
 msgstr ""
 
-#: build/index.js:22
 #: src/index.js:258
 msgid "Search submissions"
 msgstr ""
 
-#: build/settings.js:1
 #: src/settings.js:35
 msgid "Bulk delete and CSV/JSON export (single, filtered view, or selection)"
 msgstr ""
 
-#: build/settings.js:1
 #: src/settings.js:36
 msgid "Automatic trash workflow with a recovery window and hard cap"
 msgstr ""
 
-#: build/settings.js:1
 #: src/settings.js:37
 msgid "Per-form retention and capture overrides"
 msgstr ""
 
-#: build/settings.js:1
 #: src/settings.js:38
 msgid "Address book of deduplicated contacts"
 msgstr ""
 
-#: build/settings.js:1
 #: src/settings.js:39
 msgid "IP anonymisation"
 msgstr ""
 
-#: build/settings.js:1
 #: src/settings.js:40
 msgid "Encryption at rest, with the key kept out of the database"
 msgstr ""
 
-#: build/settings.js:1
 #: src/settings.js:41
 msgid "WP-CLI purge and import commands"
 msgstr ""
 
-#: build/settings.js:1
-#: build/settings.js:4
+#. translators: 1: number imported, 2: source plugin name, 3: number skipped
+#: src/settings.js:98
+#, js-format
+msgid "Imported %1$d entries from %2$s. Skipped %3$d (spam, or already past your retention window)."
+msgstr ""
+
+#: src/settings.js:107
+msgid "The import stopped. Run it again to continue where it left off."
+msgstr ""
+
 #: src/settings.js:121
 #: src/settings.js:167
 msgid "Import"
 msgstr ""
 
-#: build/settings.js:1
 #: src/settings.js:123
 msgid "Bring existing Contact Form 7 entries into Bonnie. They are stored under your current privacy settings, so IP addresses, user agents and referrers are dropped unless you have turned them on."
 msgstr ""
 
 #. translators: %d: retention window in days
-#: build/settings.js:2
 #: src/settings.js:129
 #, js-format
 msgid "Entries older than your %d-day retention window are skipped: they would be deleted on the next daily cleanup anyway."
 msgstr ""
 
 #. translators: 1: entries left to import, 2: total entries
-#: build/settings.js:3
 #: src/settings.js:152
 #, js-format
 msgid "%1$d of %2$d entry left to import"
@@ -317,154 +366,110 @@ msgid_plural "%1$d of %2$d entries left to import"
 msgstr[0] ""
 msgstr[1] ""
 
-#: build/settings.js:3
 #: src/settings.js:156
 msgid "Everything has been imported."
 msgstr ""
 
-#. translators: 1: number imported, 2: source plugin name, 3: number skipped
-#: build/settings.js:4
-#: src/settings.js:98
-#, js-format
-msgid "Imported %1$d entries from %2$s. Skipped %3$d (spam, or already past your retention window)."
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:107
-msgid "The import stopped. Run it again to continue where it left off."
-msgstr ""
-
-#: build/settings.js:4
 #: src/settings.js:166
 msgid "Importing…"
 msgstr ""
 
-#: build/settings.js:4
 #: src/settings.js:172
 msgid "Nothing is changed or removed in the source plugin. Once you have checked the import, delete the old entries there — otherwise those copies keep living in your database with no expiry."
 msgstr ""
 
-#: build/settings.js:4
-#: src/settings.js:255
-msgid "Retain entries indefinitely"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:256
-msgid "Delete entries permanently after the retention window"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:294
-msgid "Privacy"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:295
-msgid "Store IP addresses"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:295
-msgid "Off is privacy-first and recommended. When off, the IP is never written."
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:297
-msgid "Store the user agent"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:298
-msgid "Store the referring page URL"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:301
-msgid "Retention"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:304
-msgid "Retention policy"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:314
-msgid "Days to retain before deleting"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:315
-msgid "Days to retain before acting"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:316
-msgid "Minimum 1."
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:322
-msgid "Capture"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:323
-msgid "Store submissions even when the email failed to send"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:324
-msgid "Store submissions flagged as spam"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:325
-msgid "Store submissions that failed validation"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:328
-msgid "Data"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:329
-msgid "Delete all stored data and tables when the plugin is uninstalled"
-msgstr ""
-
-#: build/settings.js:4
-#: src/settings.js:329
-msgid "Off by default so accidental removal never destroys records."
-msgstr ""
-
-#: build/settings.js:4
 #: src/settings.js:198
 msgid "Settings saved."
 msgstr ""
 
-#: build/settings.js:4
 #: src/settings.js:203
 msgid "Could not save settings."
 msgstr ""
 
-#: build/settings.js:4
+#: src/settings.js:255
+msgid "Retain entries indefinitely"
+msgstr ""
+
+#: src/settings.js:256
+msgid "Delete entries permanently after the retention window"
+msgstr ""
+
+#: src/settings.js:295
+msgid "Store IP addresses"
+msgstr ""
+
+#: src/settings.js:295
+msgid "Off is privacy-first and recommended. When off, the IP is never written."
+msgstr ""
+
+#: src/settings.js:297
+msgid "Store the user agent"
+msgstr ""
+
+#: src/settings.js:298
+msgid "Store the referring page URL"
+msgstr ""
+
+#: src/settings.js:301
+msgid "Retention"
+msgstr ""
+
+#: src/settings.js:304
+msgid "Retention policy"
+msgstr ""
+
+#: src/settings.js:314
+msgid "Days to retain before deleting"
+msgstr ""
+
+#: src/settings.js:315
+msgid "Days to retain before acting"
+msgstr ""
+
+#: src/settings.js:316
+msgid "Minimum 1."
+msgstr ""
+
+#: src/settings.js:322
+msgid "Capture"
+msgstr ""
+
+#: src/settings.js:323
+msgid "Store submissions even when the email failed to send"
+msgstr ""
+
+#: src/settings.js:324
+msgid "Store submissions flagged as spam"
+msgstr ""
+
+#: src/settings.js:325
+msgid "Store submissions that failed validation"
+msgstr ""
+
+#: src/settings.js:328
+msgid "Data"
+msgstr ""
+
+#: src/settings.js:329
+msgid "Delete all stored data and tables when the plugin is uninstalled"
+msgstr ""
+
+#: src/settings.js:329
+msgid "Off by default so accidental removal never destroys records."
+msgstr ""
+
 #: src/settings.js:333
 msgid "Save changes"
 msgstr ""
 
-#: build/settings.js:4
 #: src/settings.js:349
 msgid "Bonnie Pro"
 msgstr ""
 
-#: build/settings.js:4
 #: src/settings.js:353
 msgid "Bonnie treats stored data as a liability. The separate Bonnie Pro add-on adds tools to manage it at scale:"
 msgstr ""
 
-#: build/settings.js:4
 #: src/settings.js:361
 msgid "Learn more about Bonnie Pro ↗"
 msgstr ""
