@@ -61,6 +61,13 @@ class Bonnie_Services {
 	protected $importer;
 
 	/**
+	 * Retention run record / health.
+	 *
+	 * @var Bonnie_Retention_Status|null
+	 */
+	protected $retention_status;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 1.1.0
@@ -69,13 +76,29 @@ class Bonnie_Services {
 	 * @param Bonnie_Loader        $loader   Hook loader.
 	 * @param string               $version  Running core version.
 	 * @param Bonnie_Importer|null $importer Importer (since 1.2.0).
+	 * @param Bonnie_Retention_Status|null $retention_status Retention health (since 1.3.0).
 	 */
-	public function __construct( Bonnie_Store $store, Bonnie_Logger $logger, Bonnie_Loader $loader, $version, $importer = null ) {
+	public function __construct( Bonnie_Store $store, Bonnie_Logger $logger, Bonnie_Loader $loader, $version, $importer = null, $retention_status = null ) {
 		$this->store    = $store;
 		$this->logger   = $logger;
 		$this->loader   = $loader;
 		$this->version  = (string) $version;
 		$this->importer = $importer;
+
+		$this->retention_status = $retention_status;
+	}
+
+	/**
+	 * The retention run record. Add-ons that run their own purge scopes on
+	 * `bonnie_retention_after_run` report caught errors with `->fail()`, and read
+	 * `->health()` for status. Check `method_exists( $services, 'retention_status' )`
+	 * to support older cores.
+	 *
+	 * @since  1.3.0
+	 * @return Bonnie_Retention_Status|null
+	 */
+	public function retention_status() {
+		return $this->retention_status;
 	}
 
 	/**

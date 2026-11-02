@@ -150,6 +150,7 @@ class Bonnie {
 		/**
 		 * Retention engine and its cron handler.
 		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bonnie-retention-status.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bonnie-retention.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bonnie-cron.php';
 
@@ -187,7 +188,8 @@ class Bonnie {
 			$logger,
 			$this->loader,
 			$this->version,
-			new Bonnie_Importer( $store, $logger, new Bonnie_Capture( $store, $logger ) )
+			new Bonnie_Importer( $store, $logger, new Bonnie_Capture( $store, $logger ) ),
+			new Bonnie_Retention_Status()
 		);
 
 	}
@@ -294,7 +296,7 @@ class Bonnie {
 	}
 
 	/**
-	 * Register the retention cron handler and the WP-CLI command.
+	 * Register the retention cron handler and the purge health checks.
 	 *
 	 * @since    1.0.0
 	 * @access   private
@@ -303,10 +305,16 @@ class Bonnie {
 
 		$store     = new Bonnie_Store();
 		$logger    = new Bonnie_Logger();
-		$retention = new Bonnie_Retention( $store, $logger );
+		$status    = $this->services->retention_status();
+		$retention = new Bonnie_Retention( $store, $logger, $status );
 		$cron      = new Bonnie_Cron( $retention );
 
 		$this->loader->add_action( BONNIE_CRON_HOOK, $cron, 'run' );
+
+		// Late on init so add-ons have registered their retention filters.
+		$this->loader->add_action( 'init', $status, 'check', 99 );
+		$this->loader->add_filter( 'site_status_tests', $status, 'register_site_health_test' );
+		$this->loader->add_action( 'admin_notices', $status, 'maybe_admin_notice' );
 
 	}
 
