@@ -16,7 +16,10 @@ add-on needs a new seam, and document it in `docs/HOOKS.md`.
    `src/index.js` + `src/settings.js`).
 3. **`build/*.js` and `build/*.asset.php` are committed** — rebuild and stage
    them with any `src/` change, or the shipped admin goes stale.
-4. User-facing strings changed → regenerate `languages/the-bonnie-situation.pot`
+4. Touched PHP behaviour → `npm run test:php` (PHPUnit inside wp-env; run
+   `npm run test:php:setup` once to install `vendor/`). Add a test in `tests/`
+   for retention/delete changes: a regression there silently keeps data.
+5. User-facing strings changed → regenerate `languages/the-bonnie-situation.pot`
    with `wp i18n make-pot` (no npm script for this; run via wp-env cli).
 
 ## wp-env

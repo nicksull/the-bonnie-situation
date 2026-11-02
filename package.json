@@ -7,7 +7,9 @@
     "build": "wp-scripts build src/index.js src/settings.js",
     "start": "wp-scripts start src/index.js src/settings.js",
     "plugin-zip": "wp-scripts plugin-zip",
-    "bump": "node bin/bump-version.js"
+    "bump": "node bin/bump-version.js",
+    "test:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/the-bonnie-situation vendor/bin/phpunit",
+    "test:php:setup": "wp-env run tests-cli --env-cwd=wp-content/plugins/the-bonnie-situation composer install --no-interaction"
   },
   "devDependencies": {
     "@wordpress/dataviews": "^4.0.0",
