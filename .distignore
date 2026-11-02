@@ -24,6 +24,7 @@ vendor
 # Source (compiled into build/, which is shipped) + throwaway dev files
 src
 bin
+tests
 _smoke.php
 
 # Developer docs & AI assistant state
