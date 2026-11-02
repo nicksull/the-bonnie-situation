@@ -22,6 +22,7 @@ Contact Form 7 does not store submissions: once the email is sent, the data is g
 * **Browse, search, sort and filter** submissions in a modern DataViews admin, with a per-submission detail view.
 * **Delete** individual submissions permanently, on demand.
 * **Delete-only retention:** suppress IP storage and automatically delete submissions after a configurable number of days — enforced daily by WP-Cron, with an audit log of every purge.
+* **Know when cleanup fails:** if a purge fails or stops running (including WP-Cron not firing), Bonnie warns you in Site Health and with an admin notice, so data is never silently kept past your retention window.
 * **Subject-request tooling:** integrates with WordPress's Tools → Export/Erase Personal Data so requests by email include captured submissions.
 * **Import from Flamingo and CFDB7:** bring existing entries across in one click, under your privacy settings and retention window — the source plugin doesn't even need to be active.
 
@@ -43,6 +44,7 @@ This plugin is fully functional on its own: it captures submissions and enforces
 * **IP anonymisation** — store a masked address (last octet / last 80 bits) instead of the full IP.
 * **Encryption at rest** — names, emails, subjects and form fields encrypted in the database, with the key kept in wp-config.php.
 * **WP-CLI** — `wp bonnie purge` runs the retention sweep on demand, and `wp bonnie import` runs the Flamingo / CFDB7 import from a script.
+* **Failure alerts** — email, Slack or webhook alerts when the scheduled cleanup fails or stops running, and a message when it recovers.
 
 == Installation ==
 
@@ -83,7 +85,11 @@ As short a time as you actually need them. GDPR's storage-limitation principle (
 
 = How do I guarantee purge timing on a low-traffic site? =
 
-Retention runs daily via WP-Cron. On sites with little traffic, trigger `wp-cron.php` from a real system cron so the sweep fires on schedule.
+Retention runs daily via WP-Cron. On sites with little traffic, trigger `wp-cron.php` from a real system cron so the sweep fires on schedule. If no cleanup has succeeded for 48 hours, Bonnie flags it in Site Health and on the dashboard.
+
+= What happens if the scheduled cleanup fails? =
+
+You're told. Bonnie records every cleanup run, and if one fails, or none has succeeded for 48 hours, it shows a critical item in **Tools → Site Health** and a notice on the dashboard and Bonnie's screens. If the daily schedule itself goes missing, Bonnie recreates it. The warning clears on the next successful run. Bonnie Pro can also send the alert by email, Slack or webhook.
 
 == Screenshots ==
 
@@ -112,6 +118,13 @@ fully functional without it.
 
 == Changelog ==
 
+= 1.3.0 =
+* New: Bonnie records every retention run and warns in Site Health and with an admin notice when a purge fails, or when none has succeeded for 48 hours (for example, WP-Cron isn't running). A missing daily cron event is recreated automatically.
+* Fix: a database error during a purge could be reported as a success and the purge skipped without any warning. Errors are now caught and reported, and the delete is rolled back.
+* Fix: the purge audit log records the rows actually deleted. Previously a failed delete could be logged as successful.
+* The global sweep and add-on retention scopes now run independently, so one failing no longer stops the other.
+* For add-ons: new `bonnie_retention_failed`, `bonnie_retention_stale` and `bonnie_retention_recovered` actions, and `bonnie()->retention_status()`.
+
 = 1.2.0 =
 * New: import existing entries from Flamingo and CFDB7 (Settings → Import). Works with the source plugin active or deactivated, applies your privacy settings, skips spam and entries already past their retention window, and never imports the same entry twice. Source data is left untouched.
 * Fix: honour Contact Form 7's own storage opt-outs. Forms with `do_not_store: true`, and submissions where a `consent_for:storage` checkbox is left unticked, are no longer stored; values of `do-not-store` form tags (quiz answers, CAPTCHA) are dropped.
@@ -129,6 +142,9 @@ fully functional without it.
 * Initial release: capture Contact Form 7 submissions to a custom table, a DataViews submissions admin (search/sort/filter with a per-submission detail view and permanent delete), delete-only retention with a scheduled daily purge and audit log, IP-storage suppression, and WordPress Personal Data export/erase integration.
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+Warns in Site Health when the scheduled cleanup fails or stops running, and fixes database errors during a purge being reported as success. No database changes.
 
 = 1.2.0 =
 Adds a one-click importer for Flamingo and CFDB7 entries, and honours Contact Form 7's do_not_store / consent_for:storage opt-outs. No database changes.
