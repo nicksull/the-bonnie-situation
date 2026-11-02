@@ -554,13 +554,23 @@ class Bonnie_Store {
 		$meta = self::table( 'submission_meta' );
 		$in   = implode( ',', $ids );
 
+		// $wpdb returns false on a SQL error rather than throwing, so check each
+		// statement: otherwise a failed delete would commit and look like success.
 		$wpdb->query( 'START TRANSACTION' );
 		try {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders
-			$wpdb->query( "DELETE FROM `{$meta}` WHERE submission_id IN ({$in})" );
+			if ( false === $wpdb->query( "DELETE FROM `{$meta}` WHERE submission_id IN ({$in})" ) ) {
+				throw new \RuntimeException( 'Could not delete submission meta: ' . $wpdb->last_error );
+			}
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders
-			$deleted = (int) $wpdb->query( "DELETE FROM `{$sub}` WHERE id IN ({$in})" );
-			$wpdb->query( 'COMMIT' );
+			$deleted = $wpdb->query( "DELETE FROM `{$sub}` WHERE id IN ({$in})" );
+			if ( false === $deleted ) {
+				throw new \RuntimeException( 'Could not delete submissions: ' . $wpdb->last_error );
+			}
+			if ( false === $wpdb->query( 'COMMIT' ) ) {
+				throw new \RuntimeException( 'Could not commit the delete: ' . $wpdb->last_error );
+			}
+			$deleted = (int) $deleted;
 		} catch ( \Throwable $e ) {
 			$wpdb->query( 'ROLLBACK' );
 			throw $e;
