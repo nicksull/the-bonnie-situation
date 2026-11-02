@@ -39,6 +39,7 @@ const PRO_FEATURES = [
 	__( 'IP anonymisation', 'the-bonnie-situation' ),
 	__( 'Encryption at rest, with the key kept out of the database', 'the-bonnie-situation' ),
 	__( 'WP-CLI purge and import commands', 'the-bonnie-situation' ),
+	__( 'Email, Slack or webhook alerts if the scheduled cleanup fails', 'the-bonnie-situation' ),
 ];
 
 function Section( { title, children } ) {

@@ -16,7 +16,7 @@
  * Plugin Name:       The Bonnie Situation – Contact Form 7 Database & Auto-Delete
  * Plugin URI:        https://beforebonnie.com
  * Description:       Save Contact Form 7 submissions to your database, then auto-delete them on a schedule. Imports Flamingo and CFDB7 entries. Clean it up before Bonnie gets home.
- * Version:           1.2.0
+ * Version:           1.3.0
  * Requires at least: 6.7
  * Requires PHP:      8.1
  * Requires Plugins:  contact-form-7
@@ -38,7 +38,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'BONNIE_VERSION', '1.2.0' );
+define( 'BONNIE_VERSION', '1.3.0' );
 
 /**
  * Schema version (bump when the table structure changes) and shared paths.
