@@ -22,3 +22,4 @@ composer.lock
 # Local-only dev config (private add-on paths, personal notes)
 .wp-env.override.json
 CLAUDE.local.md
+docs/HOOKS.md
