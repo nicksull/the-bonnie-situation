@@ -10,7 +10,8 @@ This repo ships **only** the free tier and carries **no** Pro code — there is 
 implements every Pro capability by hooking the extension API documented in
 `docs/HOOKS.md`. When adding a feature, pick the tier first: free behaviour lives
 here; Pro-only behaviour goes in the add-on. Add a hook to core only when the
-add-on needs a new seam, and document it in `docs/HOOKS.md`.
+add-on needs a new seam, and document it in `docs/HOOKS.md` (gitignored, local
+only — never commit it or describe the hooks in public docs).
 
 ## Dev loop
 1. Edit PHP → `php -l` every touched file.

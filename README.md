@@ -156,18 +156,6 @@ tests/                     PHPUnit suite
 readme.txt                 The WordPress.org listing
 ```
 
-### Releasing to WordPress.org
-
-1. Bump the version: `npm run bump -- 1.4.0`. This updates the plugin header `Version:`, `BONNIE_VERSION`, `Stable tag` and `package.json`. It does **not** touch `BONNIE_DB_VERSION`; bump that by hand only when the schema changes (it triggers the upgrade routine).
-2. Add a `= 1.4.0 =` entry under `== Changelog ==` (and `== Upgrade Notice ==`) in `readme.txt`. The script warns if the changelog entry is missing.
-3. Commit and push to `main`.
-4. Publish a GitHub Release (e.g. tag `1.4.0`).
-
-Publishing the release runs [`deploy.yml`](.github/workflows/deploy.yml), which builds the admin bundles and deploys to WordPress.org SVN (`trunk` + `tags/<version>`, plus `.wordpress-org/` → `assets/`), then attaches the zip to the release. The SVN version comes from the plugin header, not the release name.
-
-> [!NOTE]
-> This `README.md` is for GitHub only. WordPress.org reads [`readme.txt`](readme.txt), and `README.md`, `docs/` and `.wordpress-org/` are excluded from the shipped plugin by `.distignore`. Keep user-facing changes in `readme.txt` in step with this file.
-
 ## Licence
 
 [GPLv2 or later](LICENSE.txt) © 2026 Red Pocket
