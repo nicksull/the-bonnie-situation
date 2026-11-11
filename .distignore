@@ -30,6 +30,7 @@ _smoke.php
 # Developer docs & AI assistant state
 docs
 CLAUDE.md
+CLAUDE.local.md
 README.md
 .claude
 
