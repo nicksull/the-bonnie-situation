@@ -18,3 +18,7 @@ composer.lock
 
 # Distribution artifact (built by wp-scripts plugin-zip)
 /the-bonnie-situation.zip
+
+# Local-only dev config (private add-on paths, personal notes)
+.wp-env.override.json
+CLAUDE.local.md
